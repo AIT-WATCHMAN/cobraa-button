@@ -81,6 +81,9 @@ def generateMacros():
             outfile = open(f"mac/rates_{_k}.mac","w+")
             outfile.writelines(f"/generator/rate/set {rates[_k][0]}")
             outfile.close
+            outfile = open(f"mac/evts_{_k}.mac","w+")
+            outfile.writelines(f"/run/beamOn {int(_events)}")
+            outfile.close
 
 
 
@@ -188,7 +191,7 @@ source {ratDir+'/../../env.sh'} && TMPNAME=$(date +%s%N)  && rat mac/detector_{d
                 else:
 
                     if 'NA' in _p or 'RADIOGENIC' in _p: 
-                     outfile_singlesscript.writelines(f" mac/phys_{_element}.mac mac/geo_{_loc}.mac mac/rates_{_element}_{_loc}_{_p}.mac") 
+                        outfile_singlesscript.writelines(f" mac/phys_{_element}.mac mac/geo_{_loc}.mac mac/rates_{_element}_{_loc}_{_p}.mac") 
                     elif 'singles' in _p:
                         for i in range(nsetSingles):
                             file = f"{dir}/job{additionalString}_{_element}_{_loc}_{_p}_{i}.sh".replace(" ","")
@@ -259,7 +262,7 @@ def mergeRootFiles():
                     os.system(f'hadd -f -k -v 0 {outfile} {files}')
                 #otherwise merge the bonsai root files
                 else:
-                    if arguments['--core]']:
+                    if arguments['--core']:
                         filedir = "core_root_files%s/%s_%s_%s/"%(additionalString,_element,_loc,_p)
                     else:
                         filedir = "fred_root_files%s/%s_%s_%s/"%(additionalString,_element,_loc,_p)
@@ -329,7 +332,7 @@ def macroGenerator(location,element,process,nruns):
 /generator/add decaychain {element}:regexfill:poisson
 """
             detectorvolume = f"""
-/generator/pos/set   psup
+/generator/pos/set   psup+
 """
         else:
             locat = location.lower()
