@@ -332,7 +332,7 @@ def macroGenerator(location,element,process,nruns):
 /generator/add decaychain {element}:regexfill:poisson
 """
             detectorvolume = f"""
-/generator/pos/set   psup+
+/generator/pos/set PSUP+
 """
         else:
             locat = location.lower()
