@@ -169,7 +169,7 @@ def generateJobs():
     singlesscript = f"{dir}/script{additionalString}_singles.sh".replace(" ","")
     outfile_singlesscript = open(singlesscript, "w+")
     outfile_singlesscript.writelines(f"""#!/bin/sh
-source {ratDir+'/../../env.sh'} && TMPNAME=$(date +%s%N)  && rat mac/detector_{detectorStr}.mac mac/process.mac """)
+source {'~/.bashrc'} && TMPNAME=$(date +%s%N)  && rat mac/detector_{detectorStr}.mac mac/process.mac """)
     for _p in proc:
         for _loc in proc[_p]:
             for _element in d[_p][_loc]:
@@ -178,7 +178,7 @@ source {ratDir+'/../../env.sh'} && TMPNAME=$(date +%s%N)  && rat mac/detector_{d
                     script = f"{dir}/script{additionalString}_{_element}_{_loc}_{_p}.sh".replace(" ","")
                     outfile_script = open(script,"w+")
                     outfile_script.writelines(f"""#!/bin/sh
-source {ratDir+'/../../env.sh'} && TMPNAME=$(date +%s%N)  && rat mac/detector_{detectorStr}.mac mac/process.mac mac/phys_{_element}.mac mac/geo_{_loc}.mac mac/rates_{_element}_{_loc}_{_p}.mac mac/evts_{_element}_{_loc}_{_p}.mac -o root_files{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.root -l log{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.log""")
+source {'~/.bashrc'} && TMPNAME=$(date +%s%N)  && rat mac/detector_{detectorStr}.mac mac/process.mac mac/phys_{_element}.mac mac/geo_{_loc}.mac mac/rates_{_element}_{_loc}_{_p}.mac mac/evts_{_element}_{_loc}_{_p}.mac -o root_files{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.root -l log{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.log""")
                     outfile_script.close
                     os.chmod(script,S_IRWXU)
                     file = f"{dir}/job{additionalString}_{_element}_{_loc}_{_p}.sh".replace(" ","")
@@ -202,7 +202,7 @@ source {ratDir+'/../../env.sh'} && TMPNAME=$(date +%s%N)  && rat mac/detector_{d
                         script = f"{dir}/script{additionalString}_{_element}_{_loc}_{_p}.sh".replace(" ","")
                         outfile_script = open(script,"w+")
                         outfile_script.writelines(f"""#!/bin/sh
-    source {ratDir+'/../../env.sh'} && TMPNAME=$(date +%s%N)  && rat mac/detector_{detectorStr}.mac mac/process.mac mac/phys_{_element}.mac mac/geo_{_loc}.mac mac/rates_{_element}_{_loc}_{_p}.mac mac/evts_{_element}_{_loc}_{_p}.mac -o root_files{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.root -l log{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.log""")
+    source {'~/.bashrc'} && TMPNAME=$(date +%s%N)  && rat mac/detector_{detectorStr}.mac mac/process.mac mac/phys_{_element}.mac mac/geo_{_loc}.mac mac/rates_{_element}_{_loc}_{_p}.mac mac/evts_{_element}_{_loc}_{_p}.mac -o root_files{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.root -l log{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.log""")
                         outfile_script.close
                         os.chmod(script,S_IRWXU)
                         file = f"{dir}/job{additionalString}_{_element}_{_loc}_{_p}.sh".replace(" ","") 
@@ -268,9 +268,10 @@ def mergeRootFiles():
                         filedir = "fred_root_files%s/%s_%s_%s/"%(additionalString,_element,_loc,_p)
                     if os.path.exists(filedir):
                         if len(os.listdir(filedir))>0:
-                            if arguments['--core]']:
+                            if arguments['--core']:
                                 os.system(f'hadd -f -k -v 0 core_{outfile} core_{files}')
                             else:
+                                print("fred_",outfile)
                                 os.system(f'hadd -f -k -v 0 fred_{outfile} fred_{files}')
 
 
@@ -333,6 +334,13 @@ def macroGenerator(location,element,process,nruns):
 """
             detectorvolume = f"""
 /generator/pos/set PSUP+
+"""
+        elif location == "ENCAP":
+            generator = f"""
+/generator/add decaychain {element}:regexfill:poisson
+"""
+            detectorvolume = f"""
+/generator/pos/set encapsulation_phys+
 """
         else:
             locat = location.lower()
@@ -435,11 +443,11 @@ getenv     = True
 queue {nruns}
 
 """
-
+#nruns in replace of 1 (line 442)
     elif arguments['--cluster']=='glasgow':
         jobheader = f"""#!/bin/sh
 
-for i in `seq {nruns}`; do source {script}; done
+for i in `seq {1}`; do source {script}; done
 
     """ 
 
@@ -465,11 +473,11 @@ qsub -t 1-40 -V -q ppe.7.day -N job_{_element} -j y -cwd {script}
 
 srun -n{nruns} {script}
     """
-
+# nruns in replace of 1 (line 472)
     else:
         jobheader = f"""#!/bin/sh
 
-for i in `seq {nruns}`; do source {script}; done
+for i in `seq {1}`; do source {script}; done
 
     """ 
 
