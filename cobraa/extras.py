@@ -46,14 +46,12 @@ def triggers():
                     runSummary = fredfile.Get('runSummary')
                     Entries = runSummary.GetEntries()
                     totalEvents = 0
-                    singlesrate = 0
                     for i in range(Entries):
                         runSummary.GetEntry(i)
                         totalEvents += runSummary.nEvents
-                    data = fredfile.Get('dear')
+                    data = fredfile.Get('dear') # may also be named data
                     triggers = data.GetEntries()
                     singles = data.Draw("","n9>0")
-                    print(singlesrate)
                     triggerrate = triggers/totalEvents*rates[_tag][0]
                     singlesrate = singles/totalEvents*rates[_tag][0]
                     rate = rates[_tag][0]
@@ -63,14 +61,14 @@ def triggers():
                     isolist.append(_element)
                     eventlist.append(totalEvents)
                     timelist.append(simtime)
-                    triggerlist.append(triggers)
-                    singleslist.append(singles)
+                    triggerlist.append(triggerrate)
+                    singleslist.append(singlesrate)
                     # calculate 90% upper-confidence limit on singles count (normal)
                     uc = singles+1.645*sqrt(singles/totalEvents)
                     # calculate 90% upper-confidence limit on singles count (binomial)
                     #uc = singles+1.645/totalEvents*(singles*(1-singles/totalEvents))
                     # convert upper-confidence limit to singles rate
-                    #uc *= 1/totalEvents*rates[_tag][0]
+                    uc *= 1/totalEvents*rates[_tag][0]
                     uclist.append(uc)
                 except:
                     simsmissing.writelines(f"{_tag}\n")
@@ -117,14 +115,8 @@ def backgrounds():
             for _element in d[_p][_loc]:
                 _tag = "%s_%s_%s"%(_element,_loc,_p)
                 _tag = _tag.replace(" ","")
-                print("")
-                print(_tag)
-                print("")
                 _file = "fred_root_files%s/merged_%s_%s_%s.root"%(additionalString,_element,_loc,_p)
                 _file = _file.replace(" ","")
-                print("")
-                print(_file)
-                print("")
                 if 'hartlepool' in _tag or 'heysham' in _tag or 'mono' in _tag or 'boulby' in _tag:
                     continue
                 fredfile = TFile(_file)
@@ -144,8 +136,7 @@ def backgrounds():
                 print("opening ",_tag,"from ",_file)
 
                 for fidcut in drange(minFid,rangeFidmax,binwidthFid):
-                    #nevts = data.Draw("","n9>0 && closestPMT/1000.>%f"%(fidcut),"goff")
-                    nevts = data.Draw("")
+                    nevts = data.Draw("","n9>0 && closestPMT/1000.>%f"%(fidcut),"goff")
                     rate = nevts/totalEvents*rates[_tag][0]
                     if 'PMT' in _tag:
                         hPMT.Fill(fidcut,rate)
