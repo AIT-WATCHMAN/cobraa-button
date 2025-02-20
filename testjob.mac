@@ -1,0 +1,37 @@
+
+/glg4debug/glg4param omit_muon_processes  0.0
+/glg4debug/glg4param omit_hadronic_processes  0.0
+
+/rat/db/set DETECTOR experiment "BUTTON"
+/rat/db/set DETECTOR geo_file "BUTTON/button_frame.geo"
+/rat/db/set GEO[detector_veto1] material "doped_water"
+/rat/db/set GEO[detector_target_gb] material "doped_water"
+/rat/db/set GEO[detector_target_fv] material "doped_water"
+
+
+/rat/db/set BONSAI likelihoodFileName  "/models/bonsai/gd-water.bin"
+/rat/db/set BONSAI useCherenkovAngle 1
+### NT (default N9) window [-3,6]
+/rat/db/set BONSAI nXmin -3.0
+/rat/db/set BONSAI nXmax 6.0
+/rat/db/set BONSAI mediaSpeedOfLight 21.8
+  
+/run/initialize
+
+# BEGIN EVENT LOOP
+/rat/proc lesssimpledaq
+/rat/proc bonsai
+/rat/proc count
+/rat/procset update 200
+## OUTPUT PYTHON-LIKE FORMAT
+/rat/proc outntuple
+#END EVENT LOOP
+
+
+
+
+/generator/add decaychain 234Pa:regexfill:poisson
+
+/generator/pos/set PSUP+
+/generator/rate/set 6.6
+/run/beamOn 125000

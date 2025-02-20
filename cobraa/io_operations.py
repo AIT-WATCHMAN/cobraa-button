@@ -8,6 +8,7 @@ import os
 # operations of Cobraa, such as creating macros, jobs and so forth.
 # Author Marc Bergevin
 # Adapted by Liz Kneale (May 2021)
+#Adapted by Lewis Sexton 24/25
 
 def testCreateDirectory(directory):
     if not os.path.exists(directory):
@@ -44,46 +45,62 @@ def generateMacros():
         for _loc in proc[_p]:
             for _element in d[_p][_loc]:
                 if 'singles' not in _p:
-                    header,processors,generator,detectorvolume = macroGenerator(_loc,_element,_p,nruns)
-                    outfile = open("mac/phys_%s.mac"%(_element).replace(" ",""),"w+")
+                    macdir="mac/%s_%s_%s"%(_element,_loc,_p)
+                    macdir=macdir.replace(" ","")
+                    #print(macdir)
+                    testCreateDirectory(macdir)
+
+                    generator,detectorvolume = macroGenerator(_loc,_element,_p,nruns)
+                    outfile = open("%s/phys_%s.mac"%(macdir,_element),"w+")
                     outfile.writelines(generator)
                     outfile.close
-                    outfile = open("mac/geo_%s.mac"%(_loc),"w+")
+                    outfile = open("%s/geo_%s.mac"%(macdir,_loc),"w+")
                     outfile.writelines(detectorvolume)
                     outfile.close
-                    print(_p,_loc,_element)
+                    #print(_p,_loc,_element)
 
     # write the macros for the detector geometry and rat processors
-    header,processors,generator,detectorvolume = macroGenerator("","","",0)
+    header,processors,recon = generalMacroGenerator()
     outfile = open(f"mac/detector_{detectorStr}.mac","w+")
     outfile.writelines(header)
     outfile.close
     outfile = open("mac/process.mac","w+")
     outfile.writelines(processors)
     outfile.close
+    if arguments['--bonsai']:
+        outfile = open("mac/bonsai.mac","w+")
+        outfile.writelines(recon)
+        outfile.close
+        outfile = open("mac/bonsai_proc.mac","w+")
+        outfile.writelines(f"/rat/proc bonsai")
+        outfile.close
+    outfile = open("mac/initialize.mac","w+")
+    outfile.writelines(f"/run/initialize")
+    outfile.close
 
     # write the macros for the number of events to be simulated and
     # expected total event rates in the detector (before detector effects)
     for _k in rates:
-        _events = int(float(arguments['-e'])*rates[_k][1])
-        if 'singles' in _k:
-            print("\n\n\n Warning - only %f days of singles events will be simulated!!!!!\n\n\n"%(_events*nsetSingles*nruns/float(singlespersec*86400)))
-            outfile = open(f"mac/evts_singles.mac","w+")
-            outfile.writelines(f"/run/beamOn {_events}")
-        elif 'pn_ibd' in _k or 'A_Z' in _k or 'fast' in _k or 'mono' in _k:
-            outfile = open(f"mac/rates_{_k}.mac","w+")
-            outfile.writelines(f"/generator/rate/set {rates[_k][0]}")
-            outfile.close
-            outfile = open(f"mac/evts_{_k}.mac","w+")
-            outfile.writelines(f"/run/beamOn {int(_events)}")
-            outfile.close
-        else:
-            outfile = open(f"mac/rates_{_k}.mac","w+")
-            outfile.writelines(f"/generator/rate/set {rates[_k][0]}")
-            outfile.close
-            outfile = open(f"mac/evts_{_k}.mac","w+")
-            outfile.writelines(f"/run/beamOn {int(_events)}")
-            outfile.close
+        if os.path.isdir(f"mac/{_k}"):
+            _events = int(float(arguments['-e'])*rates[_k][1])
+            if 'singles' in _k:
+                print("\n\n\n Warning - only %f days of singles events will be simulated!!!!!\n\n\n"%(_events*nsetSingles*nruns/float(singlespersec*86400)))
+                outfile = open(f"mac/evts_singles.mac","w+")
+                outfile.writelines(f"/run/beamOn {_events}")
+            elif 'pn_ibd' in _k or 'A_Z' in _k or 'fast' in _k or 'mono' in _k:
+                outfile = open(f"mac/{_k}/rates_{_k}.mac","w+")
+                outfile.writelines(f"/generator/rate/set {rates[_k][0]}")
+                outfile.close
+                outfile = open(f"mac/{_k}/evts_{_k}.mac","w+")
+                outfile.writelines(f"/run/beamOn {int(_events)}")
+                outfile.close
+            else:
+                outfile = open(f"mac/{_k}/rates_{_k}.mac","w+")
+                outfile.writelines(f"/generator/rate/set {rates[_k][0]}")
+                outfile.close
+                outfile = open(f"mac/{_k}/evts_{_k}.mac","w+")
+                outfile.writelines(f"/run/beamOn {int(_events)}")
+                outfile.close
 
 
 
@@ -95,7 +112,7 @@ def generateJobs():
         for _loc in proc[_p]:
             for _element in d[_p][_loc]:
                 if arguments['--singles']:
-                    dir = "root_files%s/%s_%s_%s"%(additionalString,_element,_loc,_p)
+                    dir = "raw_root_files%s/%s_%s_%s"%(additionalString,_element,_loc,_p)
                     dir = dir.replace(" ","")
                     if arguments['--force']:
                         print('Using force to recreate dir:',dir)
@@ -103,9 +120,9 @@ def generateJobs():
                     else:
                         testCreateDirectoryIfNotExist(dir)
                     if arguments['--core']:
-                        dir = "core_root_files%s/%s_%s_%s"%(additionalString,_element,_loc,_p)
+                        dir = "raw_root_files%s/%s_%s_%s"%(additionalString,_element,_loc,_p)
                     else:
-                        dir = "fred_root_files%s/%s_%s_%s"%(additionalString,_element,_loc,_p)
+                        dir = "reconstructed_root_files%s/%s_%s_%s"%(additionalString,_element,_loc,_p)
                     dir = dir.replace(" ","")
                     if arguments['--force']:
                         print('Using force to recreate dir:',dir)
@@ -123,7 +140,7 @@ def generateJobs():
                 else:
                     if 'pn_ibd' in _p or 'A_Z' in _p or 'FAST' in _p or 'singles' in _p or 'mono' in _p:
                 
-                        dir = "root_files%s/%s_%s_%s"%(additionalString,_element,_loc,_p)
+                        dir = "raw_root_files%s/%s_%s_%s"%(additionalString,_element,_loc,_p)
                         dir = dir.replace(" ","")
                         if arguments['--force']:
                             print('Using force to recreate dir:',dir)
@@ -131,9 +148,9 @@ def generateJobs():
                         else:
                             testCreateDirectoryIfNotExist(dir)
                         if arguments['--core']:
-                            dir = "core_root_files%s/%s_%s_%s"%(additionalString,_element,_loc,_p)
+                            dir = "raw_root_files%s/%s_%s_%s"%(additionalString,_element,_loc,_p)
                         else:
-                            dir = "fred_root_files%s/%s_%s_%s"%(additionalString,_element,_loc,_p)
+                            dir = "reconstructed_root_files%s/%s_%s_%s"%(additionalString,_element,_loc,_p)
                         dir = dir.replace(" ","")
                         if arguments['--force']:
                             print('Using force to recreate dir:',dir)
@@ -149,6 +166,8 @@ def generateJobs():
                             testCreateDirectoryIfNotExist(dir)
 
     ratDir      = os.environ['RATROOT']
+    butDir      = os.environ['BUTTONDATA']
+    #print(butDir)
     nameJob     = "nameJob"
     timeJob     = arguments["--jobTime"]
     outFile     = "out_file.log"
@@ -169,7 +188,7 @@ def generateJobs():
     singlesscript = f"{dir}/script{additionalString}_singles.sh".replace(" ","")
     outfile_singlesscript = open(singlesscript, "w+")
     outfile_singlesscript.writelines(f"""#!/bin/sh
-source {ratDir+'/../../env.sh'} && TMPNAME=$(date +%s%N)  && rat mac/detector_{detectorStr}.mac mac/process.mac """)
+source {ratDir+'/../../env.sh'} && source {butDir+'/'+experimentStr.lower()+'.sh'} && TMPNAME=$(date +%s%N)  && {experimentStr.lower()} mac/detector_{detectorStr}.mac mac/bonsai.mac mac/initialize.mac mac/process.mac mac/bonsai_proc.mac """)
     for _p in proc:
         for _loc in proc[_p]:
             for _element in d[_p][_loc]:
@@ -178,7 +197,7 @@ source {ratDir+'/../../env.sh'} && TMPNAME=$(date +%s%N)  && rat mac/detector_{d
                     script = f"{dir}/script{additionalString}_{_element}_{_loc}_{_p}.sh".replace(" ","")
                     outfile_script = open(script,"w+")
                     outfile_script.writelines(f"""#!/bin/sh
-source {ratDir+'/../../env.sh'} && TMPNAME=$(date +%s%N)  && rat mac/detector_{detectorStr}.mac mac/process.mac mac/phys_{_element}.mac mac/geo_{_loc}.mac mac/rates_{_element}_{_loc}_{_p}.mac mac/evts_{_element}_{_loc}_{_p}.mac -o root_files{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.root -l log{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.log""")
+source {ratDir+'/../../env.sh'} && source {butDir+'/'+experimentStr.lower()+'.sh'} && TMPNAME=$(date +%s%N)  && {experimentStr.lower()} mac/detector_{detectorStr}.mac mac/bonsai.mac mac/initialize.mac mac/process.mac mac/bonsai_proc.mac mac/{_element}_{_loc}_{_p}/phys_{_element}.mac mac/{_element}_{_loc}_{_p}/geo_{_loc}.mac mac/{_element}_{_loc}_{_p}/rates_{_element}_{_loc}_{_p}.mac mac/{_element}_{_loc}_{_p}/evts_{_element}_{_loc}_{_p}.mac -o raw_root_files{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.root -l log{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.log""")
                     outfile_script.close
                     os.chmod(script,S_IRWXU)
                     file = f"{dir}/job{additionalString}_{_element}_{_loc}_{_p}.sh".replace(" ","")
@@ -191,7 +210,7 @@ source {ratDir+'/../../env.sh'} && TMPNAME=$(date +%s%N)  && rat mac/detector_{d
                 else:
 
                     if 'NA' in _p or 'RADIOGENIC' in _p: 
-                        outfile_singlesscript.writelines(f" mac/phys_{_element}.mac mac/geo_{_loc}.mac mac/rates_{_element}_{_loc}_{_p}.mac") 
+                        outfile_singlesscript.writelines(f" mac/_{_element}_{_loc}_{_p}/phys_{_element}.mac mac/{_element}_{_loc}_{_p}/geo_{_loc}.mac mac/{_element}_{_loc}_{_p}/rates_{_element}_{_loc}_{_p}.mac") 
                     elif 'singles' in _p:
                         for i in range(nsetSingles):
                             file = f"{dir}/job{additionalString}_{_element}_{_loc}_{_p}_{i}.sh".replace(" ","")
@@ -202,7 +221,7 @@ source {ratDir+'/../../env.sh'} && TMPNAME=$(date +%s%N)  && rat mac/detector_{d
                         script = f"{dir}/script{additionalString}_{_element}_{_loc}_{_p}.sh".replace(" ","")
                         outfile_script = open(script,"w+")
                         outfile_script.writelines(f"""#!/bin/sh
-    source {ratDir+'/../../env.sh'} && TMPNAME=$(date +%s%N)  && rat mac/detector_{detectorStr}.mac mac/process.mac mac/phys_{_element}.mac mac/geo_{_loc}.mac mac/rates_{_element}_{_loc}_{_p}.mac mac/evts_{_element}_{_loc}_{_p}.mac -o root_files{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.root -l log{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.log""")
+    source {ratDir+'/../../env.sh'} && source {butDir+'/'+experimentStr.lower()+'.sh'} && TMPNAME=$(date +%s%N)  && {experimentStr.lower()} mac/detector_{detectorStr}.mac mac/bonsai.mac mac/initialize.mac mac/process.mac mac/bonsai_proc.mac mac/{_element}_{_loc}_{_p}/phys_{_element}.mac mac/{_element}_{_loc}_{_p}/geo_{_loc}.mac mac/{_element}_{_loc}_{_p}/rates_{_element}_{_loc}_{_p}.mac mac/{_element}_{_loc}_{_p}/evts_{_element}_{_loc}_{_p}.mac -o raw_root_files{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.root -l log{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.log""")
                         outfile_script.close
                         os.chmod(script,S_IRWXU)
                         file = f"{dir}/job{additionalString}_{_element}_{_loc}_{_p}.sh".replace(" ","") 
@@ -212,35 +231,24 @@ source {ratDir+'/../../env.sh'} && TMPNAME=$(date +%s%N)  && rat mac/detector_{d
 
                         outfile_jobs.close
     
-    outfile_singlesscript.writelines(f" mac/evts_singles.mac -o root_files{additionalString}/singles_ALL_singles/run$TMPNAME.root -l log{additionalString}/singles_ALL_singles/run$TMPNAME.log")
+    outfile_singlesscript.writelines(f" mac/evts_singles.mac -o raw_root_files{additionalString}/singles_ALL_singles/run$TMPNAME.root -l log{additionalString}/singles_ALL_singles/run$TMPNAME.log")
     outfile_singlesscript.close()
     os.chmod(singlesscript,S_IRWXU)
 
 
-def deleteAllWorkDirectories():
+def reset():
 
     # does what it says on the tin
-
-    dir = "log"
-    if os.path.exists(dir):
-        rmtree(dir)
-
-    dir = "jobs"
-    if os.path.exists(dir):
-        rmtree(dir)
-
-    dir = "mac"
-    if os.path.exists(dir):
-        rmtree(dir)
-
-    if os.path.exists('fit_param.dat'):
-        os.remove('fit_param.dat')
-
-    if os.path.exists('like.bin'):
-        os.remove('like.bin')
-
-    if os.path.exists('job'):
-        os.remove('job')
+    print(f""" --reset command used
+Looking for folder names containing either: log, job, mac, raw, or reconstructed.
+        """)
+    for item in os.listdir("."):
+        if os.path.isdir(item):
+            if 'log' in item or 'job' in item or 'mac' in item or 'raw' in item or 'reconstructed_' in item: 
+                print(item)
+                if input(f"Are you sure you want to delete: {item} (y/n)") != "y":
+                    continue
+                rmtree(item)
 
 
 def mergeRootFiles():
@@ -253,9 +261,9 @@ def mergeRootFiles():
             for _element in d[_p][_loc]:
                 _p = _p.replace(" ","")
                 print("Generating jobs:",_p,_loc,_element)
-                outfile = "root_files%s/merged_%s_%s_%s.root"%(additionalString,_element,_loc,_p)
+                outfile = "raw_root_files%s/merged_%s_%s_%s.root"%(additionalString,_element,_loc,_p)
                 outfile = outfile.replace(" ","")
-                files = "root_files%s/%s_%s_%s/run*.root"%(additionalString,_element,_loc,_p)
+                files = "raw_root_files%s/%s_%s_%s/run*.root"%(additionalString,_element,_loc,_p)
                 files = files.replace(" ","")
                 # merge the raw root files if required
                 if arguments['--mergeRATFiles']:
@@ -263,16 +271,51 @@ def mergeRootFiles():
                 #otherwise merge the bonsai root files
                 else:
                     if arguments['--core']:
-                        filedir = "core_root_files%s/%s_%s_%s/"%(additionalString,_element,_loc,_p)
+                        filedir = "raw_root_files%s/%s_%s_%s/"%(additionalString,_element,_loc,_p)
                     else:
-                        filedir = "fred_root_files%s/%s_%s_%s/"%(additionalString,_element,_loc,_p)
+                        filedir = "reconstructed_root_files%s/%s_%s_%s/"%(additionalString,_element,_loc,_p)
                     if os.path.exists(filedir):
                         if len(os.listdir(filedir))>0:
                             if arguments['--core']:
-                                os.system(f'hadd -f -k -v 0 core_{outfile} core_{files}')
+                                os.system(f'hadd -f -k -v 0 raw_{outfile} raw_{files}')
                             else:
-                                os.system(f'hadd -f -k -v 0 fred_{outfile} fred_{files}')
+                                os.system(f'hadd -f -k -v 0 reconstructed_{outfile} reconstructed_{files}')
 
+def generalMacroGenerator():
+    header = f"""
+/glg4debug/glg4param omit_muon_processes  0.0
+/glg4debug/glg4param omit_hadronic_processes  0.0
+
+/rat/db/set DETECTOR experiment "{experimentStr}"
+/rat/db/set DETECTOR geo_file "{experimentStr}/{detectorStr}.geo"
+{additionalMacOpt}
+"""
+    processors=f"""# BEGIN EVENT LOOP
+/rat/proc lesssimpledaq
+/rat/proc count
+/rat/procset update 200
+/rat/proc outntuple
+#END EVENT LOOP
+""" 
+    if arguments['--detectMedia']=='doped_water':
+        recon=f"""
+/rat/db/set BONSAI likelihoodFileName  "/models/gd-water.bin"
+/rat/db/set BONSAI useCherenkovAngle 1
+### NT (default N9) window [-3,6]
+/rat/db/set BONSAI nXmin -3.0
+/rat/db/set BONSAI nXmax 6.0
+/rat/db/set BONSAI mediaSpeedOfLight 21.8
+    """
+    elif arguments['--detectMedia']=='WBLS':
+        recon=f"""
+/rat/db/set BONSAI likelihoodFileName  "/models/bonsai/wbls_button.bin"
+/rat/db/set BONSAI useCherenkovAngle 0
+### NT (default N9) window [-3,6]
+/rat/db/set BONSAI nXmin -3.0
+/rat/db/set BONSAI nXmax 6.0
+/rat/db/set BONSAI mediaSpeedOfLight 20.5
+    """
+    return header,processors,recon
 
 def macroGenerator(location,element,process,nruns):
 
@@ -292,29 +335,6 @@ def macroGenerator(location,element,process,nruns):
             detectorOption = detectorOption + _str + "\n"
     depth = float(arguments["--depth"])
     rate = 1.0
-    header = f"""
-/glg4debug/glg4param omit_muon_processes  0.0
-/glg4debug/glg4param omit_hadronic_processes  0.0
-
-/rat/db/set DETECTOR experiment "{detectorStr}"
-/rat/db/set DETECTOR geo_file "{detectorStr}/{detectorStr}.geo"
-{additionalMacOpt}
-
-
-/run/initialize
-"""
-    processors=f"""# BEGIN EVENT LOOP
-/rat/proc lesssimpledaq
-# /rat/proc fitbonsai
-#/rat/proc fitcentroid
-#/rat/proc fitpath
-/rat/proc count
-/rat/procset update 200
-
-# Use IO.default_output_filename
-/rat/proclast outroot
-#END EVENT LOOP
-""" 
 
     # Then the generator (phys) and location (geo) macros;
     # these set the generator, generator conditions and location for a given event type
@@ -411,7 +431,7 @@ def macroGenerator(location,element,process,nruns):
         generator = ''
         detectorvolume = ''
 
-    return header,processors,generator,detectorvolume
+    return generator,detectorvolume
 
 
 # Specify the header for the job submission script

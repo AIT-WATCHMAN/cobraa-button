@@ -29,6 +29,7 @@ print('singles rate:', singlespersec)
 nruns = int(arguments['-N'])
 nsetSingles = 200
 detectorStr = f"{arguments['--geofile']}"
+experimentStr = f"{arguments['--expname']}"
 
 # Reactor on/off ratio based on typical AGR-1 schedule
 RonOff = (4*2)/52.
@@ -81,20 +82,24 @@ def testEnabledCondition(arguments):
     additionalMacOpt      = ""
 
     # file naming
-    additionalString += "_%s"%(arguments['--geofile'])
+    additionalString += "_%s"%(arguments['--expname'])
 
     if (arguments['--lightSimWater']):
         additionalString += "_lightSimWater"
 
     if (arguments['--lightSimWbLS']):
         additionalString += "_lightSimWbLS"
+        arguments['--detectMedia']="WBLS"
+
+    if arguments['--singles']:
+        additionalString += "_singles"
 
     # additional macro commands
-    if (arguments['--detectMedia']):
+    if (arguments['--detectMedia']): #This does not work for lightSimWbLS unless detectMedia is changed
         additionalMacOpt +="/rat/db/set GEO[detector_veto1] material \"%s\"\n"%(arguments['--detectMedia'])
         additionalMacOpt += "/rat/db/set GEO[detector_target_gb] material \"%s\"\n"%(arguments['--detectMedia'])
         additionalMacOpt += "/rat/db/set GEO[detector_target_fv] material \"%s\"\n"%(arguments['--detectMedia'])
-        additionalString += "_detectorMedia_%s" %(arguments['--detectMedia'])
+        additionalString += "_%s" %(arguments['--detectMedia'])
 
     if (arguments['--collectionEff']):
         additionalMacOpt += "/rat/db/set GEO[inner_pmts] efficiency_correction %f\n" %(float(arguments['--collectionEff']))

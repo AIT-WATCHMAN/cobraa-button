@@ -40,11 +40,13 @@ docstring = """
     --force                Forcing the recreation of the root_file,bonsai_root_file and log folders
     -v                     Verbose. Allow print out of additional information.
     --cluster=<_clus>      Specify cluster to use (options: lassen, sheffield, warwick) [Default: local]
+    --reset                Delete job, mac, log, raw, and reconstruction directories, start fresh.
 
     ## Create macros and job scripts for a user defined detector configuration
 
     -m                     Generate rat-pac macro files
     -j                     Create rat-pac/bonsai submision scripts for option above. Can be run with -m.
+    --bonsai               Generate BONSAI fitting macro which can be used within RAT-PAC run (New for RAT-PAC2).
     --jobTime=<_jt>        Length of job in minutes for LASSEN [Default: 200]
     --energyEst=<_EE>      Default energy estimator (n9,n100,n400,nX) [Default: n9]
     -N=<_N>                Number of runs to simulate [Default: 40]
@@ -66,6 +68,7 @@ docstring = """
     ############# Detector options ##############
     ## Define detector geometry and other features
 
+    --expname=<_exp>       Name of the RAT-PAC2 experiment [Default: BUTTON] #Default is for the button folder within ratdb and for button.sh envirnment script
     --geofile=<_geo>       Name of detector geofile [Default: button_frame] # don't include the .geo at the end
     --muMetal=<_MM>        Implement muMetal [Default: 0]
     --lightCone=<_LC>      Implement lightConcentrators [Default: 0]
@@ -145,6 +148,7 @@ docstring = """
 try:
     import docopt
     arguments = docopt.docopt(docstring)
+
     print('\nUsing docopt as the user control interface\n')
 except ImportError:
     print('docopt is not a recognized module, it is required to run this module')
@@ -172,7 +176,7 @@ def loadSimulationParameters():
         ROCK (inner)    232Th: 208Tl;                   238U: 210Tl;                     Radiogenic neutrons
         ENCAPSULATION   232Th: 208Tl;                   238U: 210Tl, 214Bi;              40K;    60Co;   54Mn
         '''
-        print('Running the lightSim option for water - only decays with singles rates > 10-3 and 210Tl are included')
+        print('Running the lightSim option for water - only decays with singles rates > 10-3 and 210Tl are included \n')
 
         d['CHAIN_238U_NA'] = {'LIQUID':['210Tl', '214Bi', '234Pa'],\
                 'PMT':[ '210Tl', '214Bi', '234Pa'],\
@@ -254,7 +258,9 @@ def loadSimulationParameters():
                 'TANK':['40K'],\
                 'IBEAM':['40K'],\
                 'PSUP':['40K'],\
-                'PMT':['40K']}
+                'PMT':['40K'],\
+                'ROCK_2':['40K']}
+
         d['60Co_NA'] = {'PSUP':['60Co'],\
                 'TANK':['60Co'],\
                 'IBEAM':['60Co']}
@@ -275,7 +281,7 @@ def loadSimulationParameters():
         'CHAIN_238U_NA':['PMT','PSUP','IBEAM','TANK','ROCK_2','LIQUID'],\
         'CHAIN_232Th_NA':['PMT','PSUP','IBEAM','TANK','ROCK_2','LIQUID'],\
         'CHAIN_235U_NA':['PSUP','LIQUID'],\
-        '40K_NA':['LIQUID','PMT','PSUP', 'IBEAM','TANK'],\
+        '40K_NA':['LIQUID','PMT','PSUP', 'IBEAM','TANK','ROCK_2'],\
         '60Co_NA':['TANK','PSUP','IBEAM'],\
         '137Cs_NA':['PSUP'],\
         #'pn_ibd':['LIQUID'],\
@@ -287,7 +293,7 @@ def loadSimulationParameters():
 
     else:
 
-        print('Running the full range of decays - NB some may never trigger')
+        print('Running the full range of decays - NB some may never trigger \n')
 
         d['CHAIN_238U_NA'] = {'LIQUID':['234Pa','214Pb','214Bi','210Bi','210Tl'],\
                              'PMT':['234Pa','214Pb','214Bi','210Bi','210Tl'],\
@@ -360,7 +366,11 @@ def loadSimulationParameters():
         'mono':['LIQUID'],\
         'RADIOGENIC':['ROCK_2','ROCK_1'],\
         'FASTNEUTRONS':['ROCK_2','ROCK_1']}
-    print(d,"\n\n\n\n")
+      
+        for p in process:
+                for loc in process[p]:
+                        print("{0}: {1}: {2}".format(p,loc,d[p][loc]))  
+                print("")
 
     ## This part defines the rates for the given detector configuration
 

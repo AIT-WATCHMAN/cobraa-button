@@ -11,7 +11,11 @@ from cobraa.extras import *
 
 if __name__ == '__main__':
 
-    print(docstring)
+    #fix path for directory generation
+    path=os.environ['COBRAAENV']
+    os.chdir(path)
+
+    #print(docstring)
     if arguments['-v']:
     	print(arguments)
 #     print defaultValues
@@ -38,16 +42,21 @@ if __name__ == '__main__':
     if arguments['--backgrounds']:
         backgrounds()
 
-    print('''All done.
+    if arguments['--reset']:
+        reset()
 
-You can submit multiple jobs with a single command line 'for i in `ls job/job*.sh`; do bsub $i; done')
+    print("\n All done")
 
-You can use the stand-along version of bonsai (bonsai2) by copying a like.bin to the base folder and doing the following steps:
->bsub
->source /p/gpfs1/adg/wmutils/env.sh
->for i in `ls root_files_*/*/*`; do bonsai2 $i bonsai_$i 3000 800 -500 1000 1;done
->Ctrl-D
-which will work on lassen. (Option should be 'do bonsai2 $i bonsai_$i 3000 800 -500 1000 0' for wbls.)
-''')
+    #print('''All done.
+
+#You can submit multiple jobs with a single command line 'for i in `ls job/job*.sh`; do bsub $i; done')
+
+#You can use the stand-along version of bonsai (bonsai2) by copying a like.bin to the base folder and doing the following steps:
+#>bsub
+#>source /p/gpfs1/adg/wmutils/env.sh
+#>for i in `ls root_files_*/*/*`; do bonsai2 $i bonsai_$i 3000 800 -500 1000 1;done
+#>Ctrl-D
+#which will work on lassen. (Option should be 'do bonsai2 $i bonsai_$i 3000 800 -500 1000 0' for wbls.)
+#''')
 
 ######################## End of main function  ###########################
