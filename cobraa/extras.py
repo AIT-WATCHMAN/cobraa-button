@@ -49,7 +49,7 @@ def triggers():
                     for i in range(Entries):
                         runSummary.GetEntry(i)
                         totalEvents += runSummary.nEvents
-                    data = fredfile.Get('data')
+                    data = fredfile.Get('dear') # may also be named data
                     triggers = data.GetEntries()
                     singles = data.Draw("","n9>0")
                     triggerrate = triggers/totalEvents*rates[_tag][0]
@@ -72,11 +72,11 @@ def triggers():
                     uclist.append(uc)
                 except:
                     simsmissing.writelines(f"{_tag}\n")
-                if singlesrate>1e-3 or '210Tl' in _tag:
+                if singlesrate >1e-3 or '210Tl' in _tag:
                     simsrequired.writelines(f"{_tag}\n")
 
     # create a pandas dataframe with all the information
-    df = pd.DataFrame({"{Component}":loclist, "{Origin}":decaylist,"{Isotope}":isolist,"{Events}":eventlist,"{Time (days)}":timelist,"{Trigger rate (Hz)}":triggerlist,"{Singles rate (Hz)}":singleslist,"{90% UCL}":uclist})
+    df = pd.DataFrame({"{Component}":loclist, "{Origin}":decaylist,"{Isotope}":isolist,"{Events}":eventlist,"{Time (days)}":timelist,"{Trigger rate (Hz)}":triggerlist,"{Singles rate (Hz)}":singleslist,"{90\% UCL}":uclist})
     # format the names to make them more presentation-friendly
     df = df.replace("CHAIN_","",regex=True)
     df = df.replace("_NA","",regex=True)
@@ -112,7 +112,7 @@ def backgrounds():
 
     for _p in proc:
         for _loc in proc[_p]:
-            for _element in d[_p]:
+            for _element in d[_p][_loc]:
                 _tag = "%s_%s_%s"%(_element,_loc,_p)
                 _tag = _tag.replace(" ","")
                 _file = "fred_root_files%s/merged_%s_%s_%s.root"%(additionalString,_element,_loc,_p)

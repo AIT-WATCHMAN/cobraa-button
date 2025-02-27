@@ -268,7 +268,7 @@ def mergeRootFiles():
                         filedir = "fred_root_files%s/%s_%s_%s/"%(additionalString,_element,_loc,_p)
                     if os.path.exists(filedir):
                         if len(os.listdir(filedir))>0:
-                            if arguments['--core]']:
+                            if arguments['--core']:
                                 os.system(f'hadd -f -k -v 0 core_{outfile} core_{files}')
                             else:
                                 os.system(f'hadd -f -k -v 0 fred_{outfile} fred_{files}')
@@ -333,6 +333,13 @@ def macroGenerator(location,element,process,nruns):
 """
             detectorvolume = f"""
 /generator/pos/set PSUP+
+"""
+        elif location == "ENCAP":
+            generator = f"""
+/generator/add decaychain {element}:regexfill:poisson
+"""
+            detectorvolume = f"""
+/generator/pos/set encapsulation_phys+
 """
         else:
             locat = location.lower()
@@ -435,7 +442,6 @@ getenv     = True
 queue {nruns}
 
 """
-
     elif arguments['--cluster']=='glasgow':
         jobheader = f"""#!/bin/sh
 
@@ -465,7 +471,6 @@ qsub -t 1-40 -V -q ppe.7.day -N job_{_element} -j y -cwd {script}
 
 srun -n{nruns} {script}
     """
-
     else:
         jobheader = f"""#!/bin/sh
 
