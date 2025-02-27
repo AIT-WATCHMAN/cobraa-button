@@ -30,6 +30,10 @@ nruns = int(arguments['-N'])
 nsetSingles = 200
 detectorStr = f"{arguments['--geofile']}"
 experimentStr = f"{arguments['--expname']}"
+if (arguments['--bonsai']):
+    filetype="reconstructed"
+else:
+    filetype="raw"
 
 # Reactor on/off ratio based on typical AGR-1 schedule
 RonOff = (4*2)/52.

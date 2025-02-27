@@ -72,7 +72,8 @@ def generateMacros():
         outfile.writelines(recon)
         outfile.close
         outfile = open("mac/bonsai_proc.mac","w+")
-        outfile.writelines(f"/rat/proc bonsai")
+        outfile.writelines(f"""/rat/proc bonsai
+/rat/proc outntuple""")
         outfile.close
     outfile = open("mac/initialize.mac","w+")
     outfile.writelines(f"/run/initialize")
@@ -197,7 +198,7 @@ source {ratDir+'/../../env.sh'} && source {butDir+'/'+experimentStr.lower()+'.sh
                     script = f"{dir}/script{additionalString}_{_element}_{_loc}_{_p}.sh".replace(" ","")
                     outfile_script = open(script,"w+")
                     outfile_script.writelines(f"""#!/bin/sh
-source {ratDir+'/../../env.sh'} && source {butDir+'/'+experimentStr.lower()+'.sh'} && TMPNAME=$(date +%s%N)  && {experimentStr.lower()} mac/detector_{detectorStr}.mac mac/bonsai.mac mac/initialize.mac mac/process.mac mac/bonsai_proc.mac mac/{_element}_{_loc}_{_p}/phys_{_element}.mac mac/{_element}_{_loc}_{_p}/geo_{_loc}.mac mac/{_element}_{_loc}_{_p}/rates_{_element}_{_loc}_{_p}.mac mac/{_element}_{_loc}_{_p}/evts_{_element}_{_loc}_{_p}.mac -o raw_root_files{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.root -l log{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.log""")
+source {ratDir+'/../../env.sh'} && source {butDir+'/'+experimentStr.lower()+'.sh'} && TMPNAME=$(date +%s%N)  && {experimentStr.lower()} mac/detector_{detectorStr}.mac mac/bonsai.mac mac/initialize.mac mac/process.mac mac/bonsai_proc.mac mac/{_element}_{_loc}_{_p}/phys_{_element}.mac mac/{_element}_{_loc}_{_p}/geo_{_loc}.mac mac/{_element}_{_loc}_{_p}/rates_{_element}_{_loc}_{_p}.mac mac/{_element}_{_loc}_{_p}/evts_{_element}_{_loc}_{_p}.mac -o {filetype}_root_files{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.root -l log{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.log""")
                     outfile_script.close
                     os.chmod(script,S_IRWXU)
                     file = f"{dir}/job{additionalString}_{_element}_{_loc}_{_p}.sh".replace(" ","")
@@ -221,7 +222,7 @@ source {ratDir+'/../../env.sh'} && source {butDir+'/'+experimentStr.lower()+'.sh
                         script = f"{dir}/script{additionalString}_{_element}_{_loc}_{_p}.sh".replace(" ","")
                         outfile_script = open(script,"w+")
                         outfile_script.writelines(f"""#!/bin/sh
-    source {ratDir+'/../../env.sh'} && source {butDir+'/'+experimentStr.lower()+'.sh'} && TMPNAME=$(date +%s%N)  && {experimentStr.lower()} mac/detector_{detectorStr}.mac mac/bonsai.mac mac/initialize.mac mac/process.mac mac/bonsai_proc.mac mac/{_element}_{_loc}_{_p}/phys_{_element}.mac mac/{_element}_{_loc}_{_p}/geo_{_loc}.mac mac/{_element}_{_loc}_{_p}/rates_{_element}_{_loc}_{_p}.mac mac/{_element}_{_loc}_{_p}/evts_{_element}_{_loc}_{_p}.mac -o raw_root_files{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.root -l log{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.log""")
+    source {ratDir+'/../../env.sh'} && source {butDir+'/'+experimentStr.lower()+'.sh'} && TMPNAME=$(date +%s%N)  && {experimentStr.lower()} mac/detector_{detectorStr}.mac mac/bonsai.mac mac/initialize.mac mac/process.mac mac/bonsai_proc.mac mac/{_element}_{_loc}_{_p}/phys_{_element}.mac mac/{_element}_{_loc}_{_p}/geo_{_loc}.mac mac/{_element}_{_loc}_{_p}/rates_{_element}_{_loc}_{_p}.mac mac/{_element}_{_loc}_{_p}/evts_{_element}_{_loc}_{_p}.mac -o {filetype}_root_files{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.root -l log{additionalString}/{_element}_{_loc}_{_p}/run$TMPNAME.log""")
                         outfile_script.close
                         os.chmod(script,S_IRWXU)
                         file = f"{dir}/job{additionalString}_{_element}_{_loc}_{_p}.sh".replace(" ","") 
@@ -231,7 +232,7 @@ source {ratDir+'/../../env.sh'} && source {butDir+'/'+experimentStr.lower()+'.sh
 
                         outfile_jobs.close
     
-    outfile_singlesscript.writelines(f" mac/evts_singles.mac -o raw_root_files{additionalString}/singles_ALL_singles/run$TMPNAME.root -l log{additionalString}/singles_ALL_singles/run$TMPNAME.log")
+    outfile_singlesscript.writelines(f" mac/evts_singles.mac -o {filetype}_root_files{additionalString}/singles_ALL_singles/run$TMPNAME.root -l log{additionalString}/singles_ALL_singles/run$TMPNAME.log")
     outfile_singlesscript.close()
     os.chmod(singlesscript,S_IRWXU)
 
@@ -299,7 +300,7 @@ def generalMacroGenerator():
 """ 
     if arguments['--detectMedia']=='doped_water':
         recon=f"""
-/rat/db/set BONSAI likelihoodFileName  "/models/gd-water.bin"
+/rat/db/set BONSAI likelihoodFileName  "/models/bonsai/gd-water.bin"
 /rat/db/set BONSAI useCherenkovAngle 1
 ### NT (default N9) window [-3,6]
 /rat/db/set BONSAI nXmin -3.0
