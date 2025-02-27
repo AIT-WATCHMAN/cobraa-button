@@ -1,4 +1,4 @@
-env_wm.*
+env.*
 *.txt
 *.pyc
 *.root
