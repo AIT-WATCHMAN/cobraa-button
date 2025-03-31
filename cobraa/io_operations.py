@@ -362,6 +362,13 @@ def macroGenerator(location,element,process,nruns):
             detectorvolume = f"""
 /generator/pos/set encapsulation_phys+
 """
+        elif location == "LINER":
+            generator = f"""
+/generator/add decaychain {element}:regexfill:poisson
+"""
+            detectorvolume = f"""
+/generator/pos/set black_sheet+
+"""
         else:
             locat = location.lower()
             if locat == 'liquid' or locat == 'gd':
