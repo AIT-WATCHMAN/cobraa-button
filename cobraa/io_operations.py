@@ -262,13 +262,13 @@ def mergeRootFiles():
             for _element in d[_p][_loc]:
                 _p = _p.replace(" ","")
                 print("Generating jobs:",_p,_loc,_element)
-                outfile = "raw_root_files%s/merged_%s_%s_%s.root"%(additionalString,_element,_loc,_p)
+                outfile = "root_files%s/merged_%s_%s_%s.root"%(additionalString,_element,_loc,_p)
                 outfile = outfile.replace(" ","")
-                files = "raw_root_files%s/%s_%s_%s/run*.root"%(additionalString,_element,_loc,_p)
+                files = "root_files%s/%s_%s_%s/run*.root"%(additionalString,_element,_loc,_p)
                 files = files.replace(" ","")
                 # merge the raw root files if required
                 if arguments['--mergeRATFiles']:
-                    os.system(f'hadd -f -k -v 0 {outfile} {files}')
+                    os.system(f'hadd -f -k -v 0 raw_{outfile} raw_{files}')
                 #otherwise merge the bonsai root files
                 else:
                     if arguments['--core']:
