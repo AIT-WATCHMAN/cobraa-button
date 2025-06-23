@@ -120,10 +120,10 @@ def generateJobs():
                         testCreateDirectory(dir)
                     else:
                         testCreateDirectoryIfNotExist(dir)
-                    if arguments['--core']:
-                        dir = "raw_root_files%s/%s_%s_%s"%(additionalString,_element,_loc,_p)
-                    else:
-                        dir = "reconstructed_root_files%s/%s_%s_%s"%(additionalString,_element,_loc,_p)
+                    #if arguments['--core']:
+                        #dir = "raw_root_files%s/%s_%s_%s"%(additionalString,_element,_loc,_p)
+                    #else:
+                    dir = "reconstructed_root_files%s/%s_%s_%s"%(additionalString,_element,_loc,_p)
                     dir = dir.replace(" ","")
                     if arguments['--force']:
                         print('Using force to recreate dir:',dir)
@@ -148,10 +148,10 @@ def generateJobs():
                             testCreateDirectory(dir)
                         else:
                             testCreateDirectoryIfNotExist(dir)
-                        if arguments['--core']:
-                            dir = "raw_root_files%s/%s_%s_%s"%(additionalString,_element,_loc,_p)
-                        else:
-                            dir = "reconstructed_root_files%s/%s_%s_%s"%(additionalString,_element,_loc,_p)
+                        #if arguments['--core']:
+                        #    dir = "raw_root_files%s/%s_%s_%s"%(additionalString,_element,_loc,_p)
+                        #else:
+                        dir = "reconstructed_root_files%s/%s_%s_%s"%(additionalString,_element,_loc,_p)
                         dir = dir.replace(" ","")
                         if arguments['--force']:
                             print('Using force to recreate dir:',dir)
@@ -271,16 +271,17 @@ def mergeRootFiles():
                     os.system(f'hadd -f -k -v 0 raw_{outfile} raw_{files}')
                 #otherwise merge the bonsai root files
                 else:
-                    if arguments['--core']:
-                        filedir = "raw_root_files%s/%s_%s_%s/"%(additionalString,_element,_loc,_p)
-                    else:
-                        filedir = "reconstructed_root_files%s/%s_%s_%s/"%(additionalString,_element,_loc,_p)
-                    if os.path.exists(filedir):
-                        if len(os.listdir(filedir))>0:
-                            if arguments['--core']:
-                                os.system(f'hadd -f -k -v 0 raw_{outfile} raw_{files}')
-                            else:
-                                os.system(f'hadd -f -k -v 0 reconstructed_{outfile} reconstructed_{files}')
+                    os.system(f'hadd -f -k -v 0 reconstructed_{outfile} reconstructed_{files}')
+                    #if arguments['--core']:
+                     #   filedir = "raw_root_files%s/%s_%s_%s/"%(additionalString,_element,_loc,_p)
+                    #else:
+                    #    filedir = "reconstructed_root_files%s/%s_%s_%s/"%(additionalString,_element,_loc,_p)
+                    #if os.path.exists(filedir):
+                    #    if len(os.listdir(filedir))>0:
+                    #        #if arguments['--core']:
+                    #           os.system(f'hadd -f -k -v 0 raw_{outfile} raw_{files}')
+                    #        else:
+                    #            os.system(f'hadd -f -k -v 0 reconstructed_{outfile} reconstructed_{files}')
 
 def generalMacroGenerator():
     header = f"""
