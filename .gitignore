@@ -1,4 +1,4 @@
-env_wm.*
+env_cobraa.*
 *.txt
 *.pyc
 *.root
@@ -9,3 +9,4 @@ fred_root_files*
 log_*
 *.C
 *.png
+testjob.mac
