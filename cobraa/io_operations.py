@@ -271,13 +271,14 @@ def mergeRootFiles():
                     os.system(f'hadd -f -k -v 0 raw_{outfile} raw_{files}')
                 #otherwise merge the bonsai root files
                 else:
-                    os.system(f'hadd -f -k -v 0 reconstructed_{outfile} reconstructed_{files}')
+                    #os.system(f'hadd -f -k -v 0 reconstructed_{outfile} reconstructed_{files}')
                     #if arguments['--core']:
                      #   filedir = "raw_root_files%s/%s_%s_%s/"%(additionalString,_element,_loc,_p)
                     #else:
-                    #    filedir = "reconstructed_root_files%s/%s_%s_%s/"%(additionalString,_element,_loc,_p)
-                    #if os.path.exists(filedir):
-                    #    if len(os.listdir(filedir))>0:
+                    filedir = "reconstructed_root_files%s/%s_%s_%s/"%(additionalString,_element,_loc,_p)
+                    if os.path.exists(filedir):
+                        if len(os.listdir(filedir))>0:
+                            os.system(f'hadd -f -k -v 0 reconstructed_{outfile} reconstructed_{files}')
                     #        #if arguments['--core']:
                     #           os.system(f'hadd -f -k -v 0 raw_{outfile} raw_{files}')
                     #        else:
